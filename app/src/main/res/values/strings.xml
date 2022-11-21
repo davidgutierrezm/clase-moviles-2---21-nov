@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">sistema de Ventas</string>
+    <string name="title">Vendedores</string>
+    <string name="Subtitle">Ventas</string>
+    <string name="title_main">Sistema de ventas DG</string>
+</resources>
