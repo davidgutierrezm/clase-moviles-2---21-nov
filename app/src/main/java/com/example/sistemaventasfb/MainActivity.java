@@ -12,10 +12,14 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -41,9 +45,40 @@ public class MainActivity extends AppCompatActivity {
         ImageButton btnsales = findViewById(R.id.btnsales);
         ImageButton btnlist = findViewById(R.id.btnlist);
         // Eventos
+        btnsearch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //buscar vendedor por el idseller, y traer todos los datos
+                db.collection("seller")
+                        .whereEqualTo("idseller",idseller.getText().toString())
+                        .get()
+                        .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                            @Override
+                            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                                if(task.isSuccessful()){
+                                   if (!task.getResult().isEmpty()){
+                                       //la instantanea tiene informacion del documento
+                                       for (QueryDocumentSnapshot document: task.getResult()){
+                                           //Mostrar la informacion en cada uno de los objetos referenciados
+                                           fullname.setText(document.getString("fullname"));
+                                           email.setText(document.getString("email"));
+                                           totalcomision.setText(String.valueOf(document.getDouble("totalcomision")));
+                                       }
+                                   }
+                                   else {
+                                       //Sino encuentra el usuario
+                                       Toast.makeText(getApplicationContext(),"Id vendedor no existe...",Toast.LENGTH_SHORT).show();
+                                   }
+                                }
+                            }
+                        });
+            }
+        });
+
         btnsave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
                 //validar que los datos esten diligenciados
                 String mIdseller = idseller.getText().toString();
                 String mFullname = fullname.getText().toString();
