@@ -78,33 +78,48 @@ public class MainActivity extends AppCompatActivity {
         btnsave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-                //validar que los datos esten diligenciados
+                // Validar que los datos estén diligenciados
                 String mIdseller = idseller.getText().toString();
                 String mFullname = fullname.getText().toString();
                 String mEmail = email.getText().toString();
                 String mPassword = password.getText().toString();
-                if (!mIdseller.isEmpty() && !mFullname.isEmpty() && !mEmail.isEmpty() && !mPassword.isEmpty()) {
-                    //crear una tabla temporal con los mismos campos de la coleccion seller
-                    Map<String, Object> mSeller = new HashMap<>();
-                    mSeller.put("idseller",mIdseller);
-                    mSeller.put("fullname",mFullname);
-                    mSeller.put("email",mEmail);
-                    mSeller.put("password",mPassword);
-                    mSeller.put("totalcomision",0);
-                    //agregar el documento a la coleccion seller a traves de la tabla temporal mSeller
+                if (!mIdseller.isEmpty() && !mFullname.isEmpty() && !mEmail.isEmpty() && !mPassword.isEmpty()){
+                    // Buscar el idseller
                     db.collection("seller")
-                            .add(mSeller)
-                            .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                            .whereEqualTo("idseller",idseller.getText().toString())
+                            .get()
+                            .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                                 @Override
-                                public void onSuccess(DocumentReference documentReference) {
-                                    Toast.makeText(getApplicationContext(),"Vendedor agreado con exito...", Toast.LENGTH_SHORT).show();
-                                }
-                            })
-                            .addOnFailureListener(new OnFailureListener() {
-                                @Override
-                                public void onFailure(@NonNull Exception e) {
-                                    Toast.makeText(getApplicationContext(),"Error no agrego al vendedor...", Toast.LENGTH_SHORT).show();
+                                public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                                    if (task.isSuccessful()) {
+                                        if (task.getResult().isEmpty()) { // No encontró idseller
+                                            // Crear una tabla temporal con los mismos campos de la colección seller
+                                            Map<String, Object> mSeller = new HashMap<>();
+                                            mSeller.put("idseller",mIdseller);
+                                            mSeller.put("fullname", mFullname);
+                                            mSeller.put("email", mEmail);
+                                            mSeller.put("password",mPassword);
+                                            mSeller.put("totalcomision",0);
+                                            // Agregar el documento a la colección seller a través de la tabla temporal mSeller
+                                            db.collection("seller")
+                                                    .add(mSeller)
+                                                    .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                                                        @Override
+                                                        public void onSuccess(DocumentReference documentReference) {
+                                                            Toast.makeText(getApplicationContext(), "Vendedor agregado exitosamente...",Toast.LENGTH_SHORT).show();
+                                                        }
+                                                    })
+                                                    .addOnFailureListener(new OnFailureListener() {
+                                                        @Override
+                                                        public void onFailure(@NonNull Exception e) {
+                                                            Toast.makeText(getApplicationContext(), "Error al guardar el vendedor....",Toast.LENGTH_SHORT).show();
+                                                        }
+                                                    });
+                                        }
+                                        else{
+                                            Toast.makeText(getApplicationContext(), "Id de vendedor ya existe...",Toast.LENGTH_SHORT).show();
+                                        }
+                                    }
                                 }
                             });
                 }
@@ -113,5 +128,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+
     }
 }
