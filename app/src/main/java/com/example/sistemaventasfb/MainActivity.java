@@ -27,6 +27,7 @@ import java.util.Map;
 public class MainActivity extends AppCompatActivity {
     //Se genera un objeto para conectarse a la BD de Firebase-Firestore
     FirebaseFirestore db = FirebaseFirestore.getInstance();
+    String idAutomatic;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,6 +60,7 @@ public class MainActivity extends AppCompatActivity {
                                    if (!task.getResult().isEmpty()){
                                        //la instantanea tiene informacion del documento
                                        for (QueryDocumentSnapshot document: task.getResult()){
+                                           idAutomatic = document.getId();
                                            //Mostrar la informacion en cada uno de los objetos referenciados
                                            fullname.setText(document.getString("fullname"));
                                            email.setText(document.getString("email"));
@@ -128,6 +130,82 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+
+        btnedit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Map<String,Object> mSeller = new HashMap<>();
+                mSeller.put("idSeller", idseller.getText().toString());
+                mSeller.put("nombre", fullname.getText().toString());
+                mSeller.put("email", email.getText().toString());
+                mSeller.put("password", password.getText().toString());
+                mSeller.put("totalcomision",0);
+                db.collection("seller").document(idAutomatic)
+                        .set(mSeller)
+                        .addOnSuccessListener(new OnSuccessListener<Void>() {
+                            @Override
+                            public void onSuccess(Void unused) {
+                                Toast.makeText(getApplicationContext(), "Vendedor actualizado correctamente...",Toast.LENGTH_SHORT).show();
+                            }
+                        })
+                        .addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                Toast.makeText(getApplicationContext(), "Error al actualizar el vendedor...",Toast.LENGTH_SHORT).show();
+                            }
+                        });
+            }
+        });
+
+        btndelete.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                db.collection("seller")
+                        .whereEqualTo("idseller",idseller.getText().toString())
+                        .get()
+                        .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                            @Override
+                            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                                if(task.isSuccessful()){
+                                    if (!task.getResult().isEmpty()){
+                                        //la instantanea tiene informacion del documento
+                                        for (QueryDocumentSnapshot document: task.getResult()){
+                                            idAutomatic = document.getId();
+                                            //Mostrar la informacion en cada uno de los objetos referenciados
+                                            fullname.setText(document.getString("fullname"));
+                                            email.setText(document.getString("email"));
+                                            totalcomision.setText(String.valueOf(document.getDouble("totalcomision")));
+                                            if ( totalcomision.getText().toString().equals("0.0"))
+                                            db.collection("seller").document(idAutomatic)
+                                                    .delete()
+                                                    .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                        @Override
+                                                        public void onSuccess(Void unused) {
+
+                                                                Toast.makeText(getApplicationContext(), "Vendedor borrado correctamente...", Toast.LENGTH_SHORT).show();
+
+                                                        }
+                                                    })
+                                                    .addOnFailureListener(new OnFailureListener() {
+                                                        @Override
+                                                        public void onFailure(@NonNull Exception e) {
+                                                            Toast.makeText(getApplicationContext(), "Error al borrar el vendedor...",Toast.LENGTH_SHORT).show();
+                                                        }
+                                                    });
+                                        }
+                                    }
+                                    else {
+                                        //Sino encuentra el usuario
+                                        Toast.makeText(getApplicationContext(),"Id vendedor no existe...",Toast.LENGTH_SHORT).show();
+                                    }
+                                }
+                            }
+                        });
+
+
+            }
+        });
+
 
     }
 }
