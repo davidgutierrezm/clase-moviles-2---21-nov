@@ -3,6 +3,7 @@ package com.example.sistemaventasfb;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.view.View;
@@ -28,6 +29,7 @@ public class MainActivity extends AppCompatActivity {
     //Se genera un objeto para conectarse a la BD de Firebase-Firestore
     FirebaseFirestore db = FirebaseFirestore.getInstance();
     String idAutomatic;
+    String mTotalcomision;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,6 +48,39 @@ public class MainActivity extends AppCompatActivity {
         ImageButton btnsales = findViewById(R.id.btnsales);
         ImageButton btnlist = findViewById(R.id.btnlist);
         // Eventos
+        btnsales.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Buscar por idseller y recuperar todos los los datos
+                db.collection("seller")
+                        .whereEqualTo("idseller",idseller.getText().toString())
+                        .get()
+                        .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                            @Override
+                            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                                if (task.isSuccessful()) {
+                                    if (!task.getResult().isEmpty()) {
+                                        for (QueryDocumentSnapshot document: task.getResult()){
+                                             mTotalcomision = String.valueOf(document.getDouble("totalcomision"));
+                                        }
+                                        //ir a ventas con el parametro de ideseller
+                                        //startActivity(new Intent(getApplicationContext(),sales.class));
+                                        Intent iSales = new Intent(getApplicationContext(),sales.class);
+                                        //Pasar el parametro de la identificacion del vendedor
+                                        iSales.putExtra("eidseller",idseller.getText().toString());
+                                        iSales.putExtra("etotalcomision",mTotalcomision);
+                                        startActivity(iSales);
+                                    } else {
+                                        Toast.makeText(getApplicationContext(),"id vendedor no existe ...",Toast.LENGTH_SHORT).show();
+                                    }
+                                }
+                            }
+                        });
+            }
+        });
+
+
+
         btnsearch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -158,50 +193,52 @@ public class MainActivity extends AppCompatActivity {
         });
 
         btndelete.setOnClickListener(new View.OnClickListener() {
-            @Override
             public void onClick(View v) {
+                // Buscar por idseller y recuperar todos los los datos
                 db.collection("seller")
                         .whereEqualTo("idseller",idseller.getText().toString())
                         .get()
                         .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                             @Override
                             public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                                if(task.isSuccessful()){
-                                    if (!task.getResult().isEmpty()){
-                                        //la instantanea tiene informacion del documento
-                                        for (QueryDocumentSnapshot document: task.getResult()){
+                                if (task.isSuccessful()) {
+                                    if (!task.getResult().isEmpty()) {
+                                        // La instantanea tiene información del documento
+                                        for (QueryDocumentSnapshot document : task.getResult()) {
                                             idAutomatic = document.getId();
-                                            //Mostrar la informacion en cada uno de los objetos referenciados
+                                            // Mostrar la informacion en cada uno de los obj refers
                                             fullname.setText(document.getString("fullname"));
                                             email.setText(document.getString("email"));
                                             totalcomision.setText(String.valueOf(document.getDouble("totalcomision")));
-                                            if ( totalcomision.getText().toString().equals("0.0"))
+
+                                        }
+                                        if (totalcomision.getText().toString().equals("0.0") ) {
                                             db.collection("seller").document(idAutomatic)
                                                     .delete()
                                                     .addOnSuccessListener(new OnSuccessListener<Void>() {
                                                         @Override
                                                         public void onSuccess(Void unused) {
-
-                                                                Toast.makeText(getApplicationContext(), "Vendedor borrado correctamente...", Toast.LENGTH_SHORT).show();
-
-                                                        }
-                                                    })
-                                                    .addOnFailureListener(new OnFailureListener() {
-                                                        @Override
-                                                        public void onFailure(@NonNull Exception e) {
-                                                            Toast.makeText(getApplicationContext(), "Error al borrar el vendedor...",Toast.LENGTH_SHORT).show();
+                                                            Toast.makeText(getApplicationContext(), "Vendedor borrado correctamente...", Toast.LENGTH_SHORT).show();
                                                         }
                                                     });
+
+
                                         }
-                                    }
-                                    else {
-                                        //Sino encuentra el usuario
-                                        Toast.makeText(getApplicationContext(),"Id vendedor no existe...",Toast.LENGTH_SHORT).show();
+                                        else{
+                                            Toast.makeText(getApplicationContext(), "el vendedor tiene comision no se puede borrar", Toast.LENGTH_SHORT).show();
+
+                                        }
+
                                     }
                                 }
-                            }
-                        });
 
+                                else {
+                                    // Si no encuentra el idseller del vendedor
+                                    Toast.makeText(getApplicationContext(), "Id Vendedor NO existe...", Toast.LENGTH_SHORT).show();
+                                }
+                            }
+
+                        });
 
             }
         });
