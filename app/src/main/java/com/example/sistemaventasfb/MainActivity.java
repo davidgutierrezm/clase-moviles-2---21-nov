@@ -69,6 +69,7 @@ public class MainActivity extends AppCompatActivity {
                                         //Pasar el parametro de la identificacion del vendedor
                                         iSales.putExtra("eidseller",idseller.getText().toString());
                                         iSales.putExtra("etotalcomision",mTotalcomision);
+                                        iSales.putExtra("eidautomatic",idAutomatic);
                                         startActivity(iSales);
                                     } else {
                                         Toast.makeText(getApplicationContext(),"id vendedor no existe ...",Toast.LENGTH_SHORT).show();
@@ -210,7 +211,6 @@ public class MainActivity extends AppCompatActivity {
                                             fullname.setText(document.getString("fullname"));
                                             email.setText(document.getString("email"));
                                             totalcomision.setText(String.valueOf(document.getDouble("totalcomision")));
-
                                         }
                                         if (totalcomision.getText().toString().equals("0.0") ) {
                                             db.collection("seller").document(idAutomatic)
@@ -221,25 +221,18 @@ public class MainActivity extends AppCompatActivity {
                                                             Toast.makeText(getApplicationContext(), "Vendedor borrado correctamente...", Toast.LENGTH_SHORT).show();
                                                         }
                                                     });
-
-
                                         }
                                         else{
                                             Toast.makeText(getApplicationContext(), "el vendedor tiene comision no se puede borrar", Toast.LENGTH_SHORT).show();
-
                                         }
-
                                     }
                                 }
-
                                 else {
                                     // Si no encuentra el idseller del vendedor
                                     Toast.makeText(getApplicationContext(), "Id Vendedor NO existe...", Toast.LENGTH_SHORT).show();
                                 }
                             }
-
                         });
-
             }
         });
 
